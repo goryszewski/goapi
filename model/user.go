@@ -1,8 +1,11 @@
 package model
 
 import (
+	"context"
 	"errors"
 	"fmt"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type User struct {
@@ -17,6 +20,20 @@ var (
 )
 
 func GetUsers() []*User {
+	client := redis.NewClient(&redis.Options{
+        Addr:	  "localhost:6379",
+        DB:		  0,  // use default DB
+    })
+	ctx := context.Background()
+	err := client.Set(ctx, "foo", "bar", 0).Err()
+	if err != nil {
+		panic(err)
+	}
+	val, err := client.Get(ctx, "foo").Result()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("log:",val)
 	return users
 }
 

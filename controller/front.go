@@ -6,11 +6,20 @@ import (
 	"net/http"
 )
 
+type testwy interface {
+	ServeHTTP()
+	getAll()
+	
+}
 
 func RegisterControllers(){
 	uc:= newUserController()
+	pc:= newPostController()
 	http.Handle("/users",*uc)
 	http.Handle("/users/",*uc)
+
+	http.Handle("/posts",*pc)
+	http.Handle("/posts/",*pc)
 }
 
 
