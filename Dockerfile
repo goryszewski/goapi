@@ -10,8 +10,6 @@ COPY go.mod ./
 RUN go mod download
 
 COPY ./*.go ./
-COPY ./model/*.go ./model/
-COPY ./controller/*.go ./controller/
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /aplication
 
