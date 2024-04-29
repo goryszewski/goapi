@@ -24,7 +24,22 @@ func initweb(port string) {
 	log.Fatal(err)
 }
 
+func newService(addr string) *http.Server {
+	return &http.Server{Addr: addr}
+}
+
 func main() {
+
+	go func(port string) {
+		server := newService(port)
+		fmt.Printf("RUN Service Port: %s \n", port)
+		err := server.ListenAndServe()
+		if err != nil {
+			fmt.Printf("Error:%p\n", err)
+		}
+		fmt.Printf("LOG1\n")
+
+	}(":8084")
 
 	log.Println("Start Main")
 	Local_Router()
