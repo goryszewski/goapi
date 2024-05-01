@@ -9,22 +9,21 @@ import (
 
 var PORT string = ":8083"
 
-func page(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Page Test API")
+func prep(port string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Page Test API PORT: [%s]\n", port)
+		fmt.Fprintf(w, "Page Test API PORT: [%s]\n", port)
+	}
 }
 
-func Local_Router() {
-	log.Println("Load Router")
-	http.HandleFunc("/", page)
+func newService(addr string, handler http.Handler) *http.Server {
+	return &http.Server{Addr: addr, Handler: handler}
 }
 
-func newService(addr string) *http.Server {
-	return &http.Server{Addr: addr}
-}
-
-func buildService(port string, ch chan string) {
+func buildService(port string, ch chan string, handler http.Handler) {
 	ch <- port
-	server := newService(port)
+	server := newService(port, handler)
+
 	fmt.Printf("RUN Service Port: %s \n", port)
 	err := server.ListenAndServe()
 	if err != nil {
@@ -37,11 +36,13 @@ func buildService(port string, ch chan string) {
 func main() {
 	ch := make(chan string, 3)
 	log.Println("Start Main")
-	Local_Router()
-	services := []string{":8084", ":8083", ":8085"}
-	for _, item := range services {
 
-		go buildService(item, ch)
+	services := []string{":8084", ":8083", ":8085"}
+
+	for _, item := range services {
+		handler := http.NewServeMux()
+		handler.HandleFunc("/", prep(item))
+		go buildService(item, ch, handler)
 	}
 
 	for {
