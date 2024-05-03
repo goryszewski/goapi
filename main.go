@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"web/api/api"
 )
 
 var PORT string = ":8083"
@@ -44,7 +45,7 @@ func main() {
 	handler := http.NewServeMux()
 	handler.HandleFunc("/", prep(":8088"))
 	// load controler
-	handler.Handle("/api", req01())
+	handler.Handle("/api", api.Req01())
 
 	services := Service{Addr: ":8088", handle: handler}
 
