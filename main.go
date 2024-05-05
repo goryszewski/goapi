@@ -35,6 +35,7 @@ func buildService(ctx context.Context, service Service, ch chan string) {
 	err := server.ListenAndServe()
 	if err != nil {
 		fmt.Printf("Error:%p\n", err)
+
 	}
 	data := <-ch
 	fmt.Printf("LOG1 %s\n", data)
@@ -45,6 +46,7 @@ func calc(name string) {
 }
 
 func main() {
+
 	ctx := context.Background()
 	ch := make(chan string, 3)
 	ctx = context.WithValue(ctx, "port", ch)
@@ -52,7 +54,7 @@ func main() {
 	handler := http.NewServeMux()
 	handler.HandleFunc("/", prep(":8088"))
 	// load controler
-	handler.Handle("/api", api.Req01(ch))
+	handler.Handle("/api", api.Req01(ctx))
 
 	services := Service{Addr: ":8088", handle: handler}
 
