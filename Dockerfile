@@ -6,10 +6,13 @@ FROM golang:1.20 as Build-Stage
 WORKDIR /app
 
 COPY go.mod ./
+COPY go.sum ./
 
 RUN go mod download
 
 COPY ./*.go ./
+
+COPY ./api/*.go ./api/
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /aplication
 
