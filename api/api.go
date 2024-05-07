@@ -21,30 +21,40 @@ type Test struct {
 
 func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var p Test
+	var val string
+	var err error
 
-	err := json.NewDecoder(r.Body).Decode(&p)
-	if err != nil {
-		log.Println("err")
-	}
 	path := r.URL.Path
 	rquery := r.URL.RawQuery
 	test := r.URL.Query()
-
-	err = c.db.Set(c.ctx, "key", p.Name, 0).Err()
-	if err != nil {
-		panic(err)
-	}
-
-	val, err := c.db.Get(c.ctx, "key").Result()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("key", val)
-
-	log.Printf("json: %+v", p)
 	log.Printf("url: %+v ", path)
 	log.Printf("rquery: %+v ", rquery)
 	log.Printf("test: %+v ", test)
+	log.Printf("json: %+v", p)
+
+	if r.Method == "POST" {
+
+		err := json.NewDecoder(r.Body).Decode(&p)
+		if err != nil {
+			log.Println("err")
+		}
+		val = p.Name
+		err = c.db.Set(c.ctx, "key", val, 0).Err()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if r.Method == "GET" {
+		val, err = c.db.Get(c.ctx, "key").Result()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	fmt.Println("key", val)
+	log.Printf("Method: %+v", r.Method)
+
 	fmt.Fprintf(w, val)
 }
 
