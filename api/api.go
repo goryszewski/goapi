@@ -43,13 +43,18 @@ func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-	}
-
-	if r.Method == "GET" {
+	} else if r.Method == "GET" {
 		val, err = c.db.Get(c.ctx, "key").Result()
 		if err != nil {
 			panic(err)
 		}
+	} else if r.Method == "DELETE" {
+		c.db.Del(c.ctx, "key")
+	} else {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadGateway)
+		log.Printf("Bad request")
+		json.NewEncoder(w).Encode("error")
 	}
 
 	fmt.Println("key", val)
