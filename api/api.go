@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -21,8 +20,10 @@ type Test struct {
 
 func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var p Test
-	var val string
+	var val string = ""
 	var err error
+
+	var code int
 
 	path := r.URL.Path
 	rquery := r.URL.RawQuery
@@ -34,7 +35,7 @@ func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
-		err := json.NewDecoder(r.Body).Decode(&p)
+		err = json.NewDecoder(r.Body).Decode(&p)
 		if err != nil {
 			log.Println("err")
 		}
@@ -43,24 +44,27 @@ func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+		code = http.StatusCreated
+
 	} else if r.Method == "GET" {
 		val, err = c.db.Get(c.ctx, "key").Result()
-		if err != nil {
-			panic(err)
-		}
+		code = http.StatusAccepted
+
 	} else if r.Method == "DELETE" {
 		c.db.Del(c.ctx, "key")
+		code = http.StatusAccepted
+
 	} else {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadGateway)
 		log.Printf("Bad request")
-		json.NewEncoder(w).Encode("error")
+		code = http.StatusBadGateway
 	}
 
-	fmt.Println("key", val)
 	log.Printf("Method: %+v", r.Method)
 
-	fmt.Fprintf(w, val)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(val)
+
 }
 
 func newApiControler(ctx context.Context) *Controler {
