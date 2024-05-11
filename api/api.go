@@ -6,12 +6,18 @@ import (
 	"log"
 	"net/http"
 
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
 	"github.com/redis/go-redis/v9"
 )
 
+const uri = "mongodb://root:example@mongo:27017/"
+
 type Controler struct {
-	ctx context.Context
-	db  *redis.Client
+	ctx   context.Context
+	db    *redis.Client
+	mongo *mongo.Client
 }
 
 type Test struct {
@@ -45,6 +51,9 @@ func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		code = http.StatusCreated
+		collection := c.mongo.Database("godb").Collection("name")
+		_, err := collection.InsertOne(c.ctx, &p)
+		log.Printf(err.Error())
 
 	} else if r.Method == "GET" {
 		val, err = c.db.Get(c.ctx, "key").Result()
@@ -73,7 +82,13 @@ func newApiControler(ctx context.Context) *Controler {
 		Password: "",
 		DB:       0,
 	})
-	return &Controler{ctx: ctx, db: rdb}
+
+	clientOptions := options.Client().ApplyURI(uri)
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return &Controler{ctx: ctx, db: rdb, mongo: client}
 }
 
 func Req01(ctx context.Context) *http.ServeMux {
