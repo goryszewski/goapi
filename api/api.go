@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -38,7 +40,7 @@ func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("rquery: %+v ", rquery)
 	log.Printf("test: %+v ", test)
 	log.Printf("json: %+v", p)
-
+	collection := c.mongo.Database("godb").Collection("name")
 	if r.Method == "POST" {
 
 		err = json.NewDecoder(r.Body).Decode(&p)
@@ -51,7 +53,7 @@ func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		code = http.StatusCreated
-		collection := c.mongo.Database("godb").Collection("name")
+
 		_, err := collection.InsertOne(c.ctx, &p)
 		log.Printf(err.Error())
 
@@ -62,6 +64,8 @@ func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "DELETE" {
 		c.db.Del(c.ctx, "key")
 		code = http.StatusAccepted
+		filter := bson.D{primitive.E{}}
+		collection.DeleteMany(c.ctx, filter)
 
 	} else {
 		log.Printf("Bad request")
