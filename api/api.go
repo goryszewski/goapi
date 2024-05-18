@@ -5,21 +5,18 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	mongo "web/api/Model"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/redis/go-redis/v9"
 )
 
-const uri = "mongodb://root:example@mongo:27017/"
-
 type Controler struct {
 	ctx   context.Context
 	db    *redis.Client
-	mongo *mongo.Client
+	mongo *mongo.DB
 }
 
 type Test struct {
@@ -40,7 +37,7 @@ func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("rquery: %+v ", rquery)
 	log.Printf("test: %+v ", test)
 	log.Printf("json: %+v", p)
-	collection := c.mongo.Database("godb").Collection("name")
+	collection := c.mongo.Get()
 	if r.Method == "POST" {
 
 		err = json.NewDecoder(r.Body).Decode(&p)
@@ -86,12 +83,7 @@ func newApiControler(ctx context.Context) *Controler {
 		Password: "",
 		DB:       0,
 	})
-
-	clientOptions := options.Client().ApplyURI(uri)
-	client, err := mongo.Connect(ctx, clientOptions)
-	if err != nil {
-		log.Fatal(err)
-	}
+	client := mongo.NewDB(ctx)
 	return &Controler{ctx: ctx, db: rdb, mongo: client}
 }
 
