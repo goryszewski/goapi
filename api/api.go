@@ -5,18 +5,16 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	mongo "web/api/Model"
+	model "web/api/Model"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/redis/go-redis/v9"
 )
 
 type Controler struct {
 	ctx   context.Context
-	db    *redis.Client
-	mongo *mongo.DB
+	db    *model.REDIS
+	mongo *model.DB
 }
 
 type Test struct {
@@ -78,12 +76,8 @@ func (c Controler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func newApiControler(ctx context.Context) *Controler {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
-		Password: "",
-		DB:       0,
-	})
-	client := mongo.NewDB(ctx)
+	rdb := model.NewREdis(ctx)
+	client := model.NewDB(ctx)
 	return &Controler{ctx: ctx, db: rdb, mongo: client}
 }
 
